@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>정채은 — AI 대격변 생존 스프린트</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg0: #0a0a0f;
+    --bg1: #13131a;
+    --bg2: #1c1c26;
+    --bg3: #252534;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.15);
+    --text1: #eae8f4;
+    --text2: #9896b0;
+    --text3: #4e4c64;
+    --purple: #8B7FE8;
+    --purple-bg: #1a1733;
+    --purple-text: #B8B0F5;
+    --teal: #22B587;
+    --teal-bg: #0a2820;
+    --teal-text: #62D4A8;
+    --amber: #F0A830;
+    --amber-bg: #281d06;
+    --amber-text: #F8CC80;
+    --red: #E84B4A;
+    --red-bg: #2c0d0d;
+    --red-text: #F2A0A0;
+    --cyan: #36C8D8;
+    --cyan-bg: #071e24;
+    --cyan-text: #7AE3EE;
+    --boss-border: #6A5AE0;
+    --gold: #FFD700;
+    --new-quest: #2a1f4a;
+    --new-quest-border: #6A5AE0;
+  }
+
+  body {
+    background: var(--bg0);
+    color: var(--text1);
+    font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    padding: 24px 16px;
+  }
+
+  .wrap {
+    max-width: 940px;
+    margin: 0 auto;
+    background: var(--bg1);
+    border-radius: 22px;
+    padding: 26px;
+    border: 1px solid var(--border);
+  }
+
+  /* ── HUD ── */
+  .hud {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .player { display: flex; align-items: center; gap: 14px; }
+  .avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--purple-bg);
+    border: 2px solid var(--purple);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; flex-shrink: 0;
+    transition: all 0.6s ease;
+    box-shadow: 0 0 12px rgba(139,127,232,0.25);
+  }
+  .pname { font-size: 15px; font-weight: 700; color: var(--text1); }
+  .pclass { font-size: 12px; color: var(--text2); margin-top: 3px; }
+  .level-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: var(--purple-bg);
+    color: var(--purple-text);
+    border: 1px solid var(--purple);
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  .stats { display: flex; gap: 8px; flex-wrap: wrap; }
+  .sc {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 7px 14px;
+    text-align: center;
+    min-width: 64px;
+  }
+  .sv { font-size: 18px; font-weight: 700; color: var(--text1); }
+  .sl { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+  .bars { display: flex; flex-direction: column; gap: 7px; }
+  .bar-wrap {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 14px;
+    min-width: 190px;
+  }
+  .bar-label { font-size: 11px; color: var(--text2); margin-bottom: 5px; display: flex; justify-content: space-between; }
+  .bar-label span:last-child { color: var(--text1); font-weight: 600; }
+  .bar-track { background: var(--bg0); border-radius: 4px; height: 7px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+  .bar-fill.xp { background: linear-gradient(90deg, var(--purple), var(--cyan)); }
+  .bar-fill.hp { background: var(--red); }
+
+  .reset-btn {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .reset-btn:hover { background: var(--bg3); color: var(--text1); }
+
+  /* ── Today line ── */
+  .today-bar {
+    background: var(--cyan-bg);
+    border: 1px solid var(--cyan);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 11px;
+    color: var(--cyan-text);
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* ── Penalty banner ── */
+  .penalty-bar {
+    background: var(--red-bg);
+    border: 1px solid var(--red);
+    border-radius: 8px;
+    padding: 9px 14px;
+    font-size: 12px;
+    color: var(--red-text);
+    margin-bottom: 10px;
+    display: none;
+  }
+  .penalty-bar.show { display: block; }
+
+  /* ── Section labels ── */
+  .track-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 6px;
+    display: inline-block;
+    margin: 20px 0 6px;
+  }
+  .track-3d { background: var(--purple-bg); color: var(--purple-text); border: 1px solid var(--purple); }
+  .track-ai { background: var(--cyan-bg); color: var(--cyan-text); border: 1px solid var(--cyan); }
+  .track-money { background: var(--amber-bg); color: var(--amber-text); border: 1px solid var(--amber); }
+
+  .month-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text1);
+    margin: 20px 0 8px;
+    padding-left: 2px;
+  }
+  .week-hdr {
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: .07em;
+    margin-bottom: 7px;
+    padding-left: 2px;
+    text-transform: uppercase;
+  }
+
+  /* ── Quest grid ── */
+  .quest-section { margin-bottom: 6px; }
+  .week-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 9px;
+    margin-bottom: 10px;
+  }
+
+  /* ── Quest card ── */
+  .qcard {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 15px;
+    cursor: pointer;
+    transition: border-color .15s, background .15s, opacity .2s;
+    position: relative;
+    min-height: 118px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .qcard:hover:not(.locked):not(.failed) { border-color: var(--border2); background: var(--bg3); }
+  .qcard.locked { opacity: .3; cursor: not-allowed; }
+  .qcard.done { border-color: var(--teal); background: var(--teal-bg); }
+  .qcard.failed { border-color: var(--red); background: var(--red-bg); cursor: not-allowed; }
+  .qcard.boss-card { border: 1px solid var(--boss-border); background: #160f2e; }
+  .qcard.boss-card.done { border-color: var(--teal); background: var(--teal-bg); }
+  .qcard.new-quest { border: 1px solid var(--new-quest-border); background: var(--new-quest); animation: glowIn 0.7s ease; }
+  .qcard.new-quest.done { border-color: var(--teal); background: var(--teal-bg); }
+
+  @keyframes glowIn {
+    0% { opacity: 0; transform: scale(0.95); box-shadow: 0 0 0 rgba(106,90,224,0); }
+    60% { box-shadow: 0 0 20px rgba(106,90,224,0.5); }
+    100% { opacity: 1; transform: scale(1); box-shadow: 0 0 8px rgba(106,90,224,0.2); }
+  }
+
+  .qtag {
+    font-size: 10px; font-weight: 700;
+    padding: 2px 8px; border-radius: 4px;
+    display: inline-block; margin-bottom: 6px;
+    width: fit-content;
+  }
+  .tag-3d       { background: var(--purple-bg); color: var(--purple-text); }
+  .tag-ai       { background: var(--cyan-bg);   color: var(--cyan-text); }
+  .tag-money    { background: var(--amber-bg);  color: var(--amber-text); }
+  .tag-boss     { background: var(--red-bg);    color: var(--red-text); }
+  .tag-final    { background: var(--boss-border); color: #d4cfff; }
+  .tag-new      { background: #2a1840; color: #c4b0ff; border: 1px solid #7a60e8; }
+
+  .qtitle { font-size: 12px; font-weight: 700; color: var(--text1); line-height: 1.45; }
+  .qcard.done .qtitle { text-decoration: line-through; color: var(--text2); }
+  .qcard.failed .qtitle { color: var(--red-text); }
+
+  .qdesc { font-size: 11px; color: var(--text2); line-height: 1.6; flex: 1; }
+  .qcard.failed .qdesc { color: var(--red-text); opacity: .55; }
+
+  .qfooter { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 6px; }
+  .qxp { font-size: 10px; color: var(--purple-text); font-weight: 600; }
+  .qcard.done .qxp { color: var(--teal-text); }
+  .qcard.failed .qxp { color: var(--red-text); opacity: .5; }
+
+  .deadline {
+    font-size: 10px; color: var(--amber-text); font-weight: 600;
+    background: var(--amber-bg); padding: 2px 7px; border-radius: 4px;
+    border: 1px solid rgba(240,168,48,0.2);
+  }
+  .deadline.expired { color: var(--red-text); background: var(--red-bg); border-color: rgba(232,75,74,0.3); }
+  .deadline.safe { color: var(--teal-text); background: var(--teal-bg); border-color: rgba(34,181,135,0.2); }
+
+  .corner-badge { position: absolute; top: 10px; right: 12px; font-size: 15px; }
+
+  /* ── Level up popup ── */
+  .levelup-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 999;
+    opacity: 0; pointer-events: none;
+    transition: opacity .3s;
+  }
+  .levelup-overlay.show { opacity: 1; pointer-events: all; }
+  .levelup-box {
+    background: var(--bg1);
+    border: 2px solid var(--gold);
+    border-radius: 22px;
+    padding: 36px 44px;
+    text-align: center;
+    max-width: 340px;
+    box-shadow: 0 0 60px rgba(255,215,0,0.25);
+  }
+  .lu-avatar { font-size: 64px; margin-bottom: 14px; }
+  .lu-title { font-size: 13px; color: var(--gold); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; }
+  .lu-level { font-size: 32px; font-weight: 800; color: var(--text1); margin-bottom: 4px; }
+  .lu-class { font-size: 15px; color: var(--purple-text); margin-bottom: 20px; }
+  .lu-btn {
+    background: var(--gold); color: #000; font-weight: 700;
+    border: none; border-radius: 10px; padding: 10px 28px;
+    font-size: 14px; cursor: pointer; transition: opacity .15s;
+  }
+  .lu-btn:hover { opacity: .85; }
+
+  /* ── Toast ── */
+  .toast {
+    background: var(--purple-bg);
+    border: 1px solid var(--purple);
+    color: var(--purple-text);
+    font-size: 12px; padding: 9px 20px;
+    border-radius: 20px; opacity: 0;
+    transition: opacity .3s;
+    pointer-events: none;
+    margin: 14px auto 0;
+    display: block; width: fit-content;
+    text-align: center; min-height: 34px;
+  }
+  .toast.show { opacity: 1; }
+
+  /* ── Footer ── */
+  .footer {
+    margin-top: 22px; padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 11px; color: var(--text3); text-align: center;
+    line-height: 1.8;
+  }
+
+  /* ── Tabs ── */
+  .tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+  .tab {
+    font-size: 12px; font-weight: 600;
+    padding: 6px 16px; border-radius: 8px;
+    background: var(--bg2); border: 1px solid var(--border);
+    color: var(--text2); cursor: pointer; transition: all .15s;
+  }
+  .tab.active { background: var(--purple-bg); border-color: var(--purple); color: var(--purple-text); }
+  .tab:hover:not(.active) { background: var(--bg3); color: var(--text1); }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HUD -->
+  <div class="hud">
+    <div class="player">
+      <div class="avatar" id="avatar">🌱</div>
+      <div>
+        <div class="pname">정채은 — AI 대격변 생존 스프린트</div>
+        <div class="pclass" id="pclass">클래스: 준비생 · HP 100</div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="sc"><div class="sv" id="stat-lv">Lv.1</div><div class="sl">레벨</div></div>
+      <div class="sc"><div class="sv" id="stat-done">0</div><div class="sl">완료</div></div>
+      <div class="sc"><div class="sv" id="stat-fail">0</div><div class="sl">실패</div></div>
+      <div class="sc"><div class="sv" id="stat-xp">0</div><div class="sl">XP</div></div>
+    </div>
+    <div class="bars">
+      <div class="bar-wrap">
+        <div class="bar-label"><span>성장 진행도</span><span id="xp-pct">0%</span></div>
+        <div class="bar-track"><div class="bar-fill xp" id="xp-fill" style="width:0%"></div></div>
+      </div>
+      <div class="bar-wrap">
+        <div class="bar-label"><span style="color:#F2A0A0">체력 HP</span><span id="hp-val" style="color:#F2A0A0">100</span></div>
+        <div class="bar-track"><div class="bar-fill hp" id="hp-fill" style="width:100%"></div></div>
+      </div>
+    </div>
+    <button class="reset-btn" onclick="confirmReset()">↺ 초기화</button>
+  </div>
+
+  <!-- Today bar -->
+  <div class="today-bar">
+    <span id="today-text">📅 오늘: —</span>
+    <span id="sprint-day-text">스프린트 시작일을 설정하면 카운트가 시작돼</span>
+  </div>
+
+  <!-- Penalty -->
+  <div class="penalty-bar" id="penalty-msg"></div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('3d')">🎮 3D 아티스트 트랙</div>
+    <div class="tab" onclick="switchTab('ai')">🤖 AI 크리에이터 트랙</div>
+    <div class="tab" onclick="switchTab('money')">💰 수익화 트랙</div>
+  </div>
+
+  <!-- 3D Track -->
+  <div class="tab-content active" id="tab-3d">
+    <div class="month-label">🌱 1개월차 — 기반 세우기</div>
+    <div class="week-hdr">WEEK 1–2</div>
+    <div class="week-row" id="row-3d-w1"></div>
+    <div class="week-hdr">WEEK 3–4</div>
+    <div class="week-row" id="row-3d-w2"></div>
+
+    <div class="month-label">⚔️ 2개월차 — AI 무기 장착</div>
+    <div class="week-hdr">WEEK 5–6</div>
+    <div class="week-row" id="row-3d-w3"></div>
+    <div class="week-hdr">WEEK 7–8</div>
+    <div class="week-row" id="row-3d-w4"></div>
+
+    <div class="month-label">💀 3개월차 — 실전 지원</div>
+    <div class="week-hdr">WEEK 9–10</div>
+    <div class="week-row" id="row-3d-w5"></div>
+    <div class="week-hdr">WEEK 11–12 — 최종 보스</div>
+    <div class="week-row" id="row-3d-boss"></div>
+
+    <div class="month-label" id="3d-bonus-label" style="display:none">🌟 보너스 퀘스트 (완료 보상)</div>
+    <div class="week-row" id="row-3d-bonus"></div>
+  </div>
+
+  <!-- AI Creator Track -->
+  <div class="tab-content" id="tab-ai">
+    <div class="month-label">🌱 1개월차 — AI 도구 마스터</div>
+    <div class="week-row" id="row-ai-w1"></div>
+    <div class="month-label">⚔️ 2개월차 — 콘텐츠 엔진 구축</div>
+    <div class="week-row" id="row-ai-w2"></div>
+    <div class="month-label">💀 3개월차 — 퍼블리싱 & 팬덤</div>
+    <div class="week-row" id="row-ai-w3"></div>
+    <div class="month-label" id="ai-bonus-label" style="display:none">🌟 보너스 퀘스트 (완료 보상)</div>
+    <div class="week-row" id="row-ai-bonus"></div>
+  </div>
+
+  <!-- Money Track -->
+  <div class="tab-content" id="tab-money">
+    <div class="month-label">🌱 1개월차 — 수익 씨앗 심기</div>
+    <div class="week-row" id="row-money-w1"></div>
+    <div class="month-label">⚔️ 2개월차 — 채널 & 상품 구축</div>
+    <div class="week-row" id="row-money-w2"></div>
+    <div class="month-label">💀 3개월차 — 첫 수익 실현</div>
+    <div class="week-row" id="row-money-w3"></div>
+    <div class="month-label" id="money-bonus-label" style="display:none">🌟 보너스 퀘스트 (완료 보상)</div>
+    <div class="week-row" id="row-money-bonus"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- Level up popup -->
+  <div class="levelup-overlay" id="lu-overlay">
+    <div class="levelup-box">
+      <div class="lu-avatar" id="lu-avatar">⭐</div>
+      <div class="lu-title">레벨 업!</div>
+      <div class="lu-level" id="lu-level">Lv.2</div>
+      <div class="lu-class" id="lu-class">새로운 클래스</div>
+      <button class="lu-btn" onclick="closeLevelUp()">계속하기 →</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    정채은 AI 대격변 생존 스프린트 · 퀘스트 클릭하면 완료/취소 · 데드라인 지나면 자동 실패 · 퀘스트 완료 시 새 퀘스트 해금 🔓
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// LEVEL TABLE  (XP, level, emoji, class)
+// ══════════════════════════════════════════
+const SAVE_KEY = 'chaeun_ai_sprint_v2';
+const TOTAL_XP = 600;
+
+const lvTable = [
+  { xp:   0, lv: 'Lv.1', emoji: '🌱', cls: '준비생 · 씨앗 단계' },
+  { xp:  60, lv: 'Lv.2', emoji: '🔧', cls: 'AI 도구 습득자 · 하이브리드 입문' },
+  { xp: 130, lv: 'Lv.3', emoji: '🎨', cls: '3D+AI 하이브리드 아티스트' },
+  { xp: 210, lv: 'Lv.4', emoji: '🎬', cls: 'AI 크리에이터 · 세계관 보유자' },
+  { xp: 310, lv: 'Lv.5', emoji: '💼', cls: '실전 지원 준비 완료 · 구직 전사' },
+  { xp: 420, lv: 'Lv.6', emoji: '🚀', cls: '수익화 런처 · 신흥 N잡러' },
+  { xp: 550, lv: 'Lv.MAX', emoji: '🏆', cls: 'AI 대격변 생존자 · 독립 크리에이터' },
+];
+
+// ══════════════════════════════════════════
+// QUEST DATA
+// ══════════════════════════════════════════
+// tag: '3d' | 'ai' | 'money' | 'boss' | 'final' | 'new'
+// row: container id
+// deps: array of quest ids (all must be done)
+// deadline: days from sprint start
+// bonusUnlock: quest ids to inject when this quest is completed
+// xp: XP reward
+
+const questData = [
+  // ── 3D TRACK W1 — 포폴 있으니 업그레이드/정비에 집중 ──
+  {
+    id:'3d1', row:'row-3d-w1', tag:'3d', xp:20, deadline:14,
+    title:'기존 포폴 "AI 시대 버전"으로 리빌드',
+    desc:'가장 잘 만든 씬 1개를 Midjourney 레퍼런스 → 블렌더 재현으로 업그레이드. Before/After 캡처. 이게 차별화 포인트야.',
+    deps:[]
+  },
+  {
+    id:'3d2', row:'row-3d-w1', tag:'3d', xp:20, deadline:14,
+    title:'ArtStation 프로필 "AI+3D 하이브리드" 리브랜딩',
+    desc:'기존 포폴 업로드에 AI 워크플로 설명 추가. 태그: environment art, AI-assisted, Blender, UE5. 소개란 영어+한국어로.',
+    deps:[]
+  },
+  // ── 3D TRACK W2 ──
+  {
+    id:'3d3', row:'row-3d-w2', tag:'3d', xp:25, deadline:28,
+    title:'AI 컨셉→3D 파이프라인 영상 공개 (메이킹 릴)',
+    desc:'Midjourney 컨셉 → 블렌더 모델링 → 씬 완성까지 60초 타임랩스. "AI로 이렇게 빨라졌다" 각도로. 유튜브+틱톡 동시.',
+    deps:['3d1','3d2']
+  },
+  {
+    id:'3d4', row:'row-3d-w2', tag:'3d', xp:20, deadline:28,
+    title:'게임 BGM용 AI 음악 3D 씬과 조합 시험',
+    desc:'직접 만든 AI 노래 + 3D 씬 영상 = 숏폼 1편. 두 스킬을 하나로 묶는 첫 시도. 이게 남들이 못 하는 시그니처.',
+    deps:['3d1']
+  },
+  // ── 3D TRACK W3 ──
+  {
+    id:'3d5', row:'row-3d-w3', tag:'3d', xp:30, deadline:42,
+    title:'UE5 씬 완성 + Lumen 라이팅 (2~3시간 이내 제작)',
+    desc:'하루 2~3시간 기준, 1주일이면 UE5 씬 하나 가능. 블렌더 임포트 → Lumen 조명 → 유튜브 공개. 속도가 경쟁력.',
+    deps:['3d3','3d4']
+  },
+  {
+    id:'3d6', row:'row-3d-w3', tag:'3d', xp:25, deadline:42,
+    title:'AI+3D 워크플로 "속도 챌린지" 영상 3편',
+    desc:'"1시간 만에 씬 만들기" 같은 포맷. 도전적인 제목이 클릭률 높아. 쇼츠+릴스+틱톡 세 군데 동시 업로드.',
+    deps:['3d4']
+  },
+  // ── 3D TRACK W4 ──
+  {
+    id:'3d7', row:'row-3d-w4', tag:'3d', xp:30, deadline:56,
+    title:'게임사 취업용 포폴 최종본 완성 (6작품)',
+    desc:'기존 포폴 정비 + 신작 2개 추가. 인테리어/익스테리어/UE5 씬/AI 협업 씬 필수. PDF + ArtStation 링크 완비.',
+    deps:['3d5','3d6']
+  },
+  {
+    id:'3d8', row:'row-3d-w4', tag:'3d', xp:20, deadline:56,
+    title:'지원 타겟 스튜디오 20곳 리스트업',
+    desc:'인디게임 스튜디오부터 시작. "AI 툴 쓰는 아티스트 환영" 명시한 곳 우선. 담당자 링크드인 아이디 수집.',
+    deps:['3d2']
+  },
+  // ── 3D TRACK W5 ──
+  {
+    id:'3d9', row:'row-3d-w5', tag:'3d', xp:20, deadline:70,
+    title:'이력서 + 포폴 PDF "AI 활용 아티스트" 버전',
+    desc:'"Blender / UE5 / Midjourney / Suno / Runway" 스킬 명시. AI 생산성 2배 증가 수치 넣기. 1페이지로.',
+    deps:['3d7','3d8']
+  },
+  {
+    id:'3d10', row:'row-3d-w5', tag:'3d', xp:25, deadline:72,
+    title:'아트 디렉터 콜드 DM 7곳 발송',
+    desc:'공고 없어도 OK. "AI+3D 결합 가능한 아티스트" 어필. 거절 메시지도 피드백으로 수집해.',
+    deps:['3d8']
+  },
+  // ── 3D BOSS ──
+  {
+    id:'3d-boss', row:'row-3d-boss', tag:'boss', xp:60, deadline:84, boss:true,
+    title:'지원서 10곳 + 면접 1곳 이상 달성',
+    desc:'완벽하지 않아도 지금 내. 인디든 중소든 일단 들어가. 경력 1년이면 이직 경로 완전히 열려. 이게 진짜 보스.',
+    deps:['3d9','3d10']
+  },
+
+  // ── AI CREATOR W1 — 이미 결과물 있으니 퀄업+채널화 집중 ──
+  {
+    id:'ai1', row:'row-ai-w1', tag:'ai', xp:15, deadline:10,
+    title:'기존 AI 노래·영상 결과물 "포트폴리오화"',
+    desc:'지금까지 만든 결과물 중 베스트 5개 선별. 썸네일 통일·제목 다듬기. 유튜브 미공개 재생목록으로 정리.',
+    deps:[]
+  },
+  {
+    id:'ai2', row:'row-ai-w1', tag:'ai', xp:15, deadline:10,
+    title:'유튜브 채널 콘셉 확정 + 리브랜딩',
+    desc:'"3D 배경아티스트가 AI로 만드는 세계관" 같은 각도로. 채널명·아트·소개란·링크 트리 완성. 차별점은 3D 스킬과 AI 조합.',
+    deps:[]
+  },
+  {
+    id:'ai3', row:'row-ai-w1', tag:'ai', xp:15, deadline:18,
+    title:'AI 뮤직비디오 시그니처 1편 완성',
+    desc:'Suno/Udio 노래 + Runway/Kling 영상 + 내 3D 씬 조합. 2분 내외. "나만 할 수 있는 것" 포맷. 이게 채널 대표 영상.',
+    deps:['ai1','ai2']
+  },
+  // ── AI CREATOR W2 ──
+  {
+    id:'ai4', row:'row-ai-w2', tag:'ai', xp:20, deadline:42,
+    title:'숏폼 콘텐츠 엔진 구축 (주 3편 루틴)',
+    desc:'하루 2~3시간 기준 주 3편 가능. AI 노래 만들기 과정 / 3D+AI 비교 / 메이킹 필름. 동일 소스 쇼츠·릴스·틱톡 리패키징.',
+    deps:['ai3']
+  },
+  {
+    id:'ai5', row:'row-ai-w2', tag:'ai', xp:25, deadline:42,
+    title:'AI 뮤직비디오 시리즈 3편 완성',
+    desc:'시리즈 포맷으로 팬이 기다리게 만들어. 장르 다양화 (로파이/시네마틱/게임BGM). 공개 후 댓글 모두 답글.',
+    deps:['ai3']
+  },
+  // ── AI CREATOR W3 ──
+  {
+    id:'ai6', row:'row-ai-w3', tag:'ai', xp:25, deadline:70,
+    title:'유튜브+틱톡 합산 구독자 200명 돌파',
+    desc:'200명이면 알고리즘 씨앗 심어진 거야. DM 온 사람 전부 답장. 커뮤니티탭 활성화 시작.',
+    deps:['ai4','ai5']
+  },
+  {
+    id:'ai7', row:'row-ai-w3', tag:'ai', xp:35, deadline:84,
+    title:'"채은 월드" 시그니처 쇼케이스 영상 완성',
+    desc:'3D 배경 + AI 음악 + AI 영상 전부 직접 제작한 3분짜리 세계관 영상. 포폴·취업·수익화 전부에 쓸 수 있는 명함 영상.',
+    deps:['ai5','ai6']
+  },
+
+  // ── MONEY W1 — 수익화 경험 없으니 빠른 첫 수익 체험 목표 ──
+  {
+    id:'m1', row:'row-money-w1', tag:'money', xp:10, deadline:14,
+    title:'자동수익 2트랙 동시 세팅 계획 수립',
+    desc:'① 3D 에셋 판매 (Fab.com/TurboSquid) + ② AI 음악 라이선스 (Pond5/AudioJungle). 2~3시간으로 병행 가능한 구조 설계.',
+    deps:[]
+  },
+  {
+    id:'m2', row:'row-money-w1', tag:'money', xp:20, deadline:21,
+    title:'Fab.com 셀러 등록 + 기존 에셋 1개 즉시 업로드',
+    desc:'이미 포폴 있으니 바로 올려. 기존 작업물 중 하나 정리해서 등록. 설명·태그·가격 최적화. 올려야 팔려.',
+    deps:['m1','3d1']
+  },
+  // ── MONEY W2 ──
+  {
+    id:'m3', row:'row-money-w2', tag:'money', xp:20, deadline:56,
+    title:'마켓플레이스 에셋 누적 10개 달성',
+    desc:'주 1~2개 페이스. AI 텍스처 활용해서 제작 시간 단축. 인테리어 소품·게임 환경 에셋 위주. 숫자가 파이프라인.',
+    deps:['m2','3d3']
+  },
+  {
+    id:'m4', row:'row-money-w2', tag:'money', xp:20, deadline:42,
+    title:'Pond5 AI 음악 10곡 등록',
+    desc:'이미 AI 노래 만들고 있으니 바로 가능. 게임BGM·로파이·시네마틱 카테고리. 한 번 올리면 자면서 수익 생겨.',
+    deps:['ai1','m1']
+  },
+  {
+    id:'m4b', row:'row-money-w2', tag:'money', xp:15, deadline:50,
+    title:'유튜브 멤버십 or 슈퍼챗 기능 설정',
+    desc:'구독자 30명도 멤버십 가능. 지금 세팅해두면 나중에 자동. 월정액 1000~3000원 티어 설계.',
+    deps:['ai3','m1']
+  },
+  // ── MONEY W3 ──
+  {
+    id:'m5', row:'row-money-w3', tag:'money', xp:30, deadline:75,
+    title:'첫 수익 3만원 이상 달성',
+    desc:'에셋이든 음악이든 채널이든. "수익화 가능함" 증명이 목표. 금액이 아니라 파이프라인 검증.',
+    deps:['m3','m4']
+  },
+  {
+    id:'m6', row:'row-money-w3', tag:'money', xp:35, deadline:90,
+    title:'월 자동수익 10만원 파이프라인 완성',
+    desc:'에셋(Fab) + 음악(Pond5) + 채널 수익 구조도 작성. 다음 90일엔 30만원 목표 플랜 초안. N잡 엔진 완성.',
+    deps:['m5']
+  },
+];
+
+// Bonus quests unlocked after completing specific quests
+const bonusQuestMap = {
+  '3d-boss': [
+    {
+      id:'3d-b1', row:'row-3d-bonus', tag:'new', xp:35, deadline:999,
+      title:'게임 스튜디오 프리랜서 외주 1건 수주',
+      desc:'아트스테이션·링크드인 통해 들어온 외주. 실무 레퍼런스 첫 번째. 단가 협상도 연습해. 외주 경험 = 이직 때 최강 무기.',
+      deps:[]
+    },
+    {
+      id:'3d-b2', row:'row-3d-bonus', tag:'new', xp:25, deadline:999,
+      title:'"AI 3D 아티스트 취업 후기" 영상 제작',
+      desc:'내 취업 과정 공개. 제일 많이 조회되는 콘텐츠 장르야. 채널 성장 + 후배 크리에이터 팬덤 동시 획득.',
+      deps:[]
+    }
+  ],
+  'ai7': [
+    {
+      id:'ai-b1', row:'row-ai-bonus', tag:'new', xp:30, deadline:999,
+      title:'AI 크리에이터 콜라보 + 합작 영상 1편',
+      desc:'비슷한 AI 크리에이터 DM. 서로 채널 홍보. 팬덤 교환이 가장 빠른 성장법.',
+      deps:[]
+    },
+    {
+      id:'ai-b2', row:'row-ai-bonus', tag:'new', xp:40, deadline:999,
+      title:'AI 뮤직비디오 "바이럴" 도전 (조회수 1만)',
+      desc:'퀄리티 올린 한 편에 올인. 숏폼+롱폼 동시 공개. 1만 조회면 알고리즘 본격 타.',
+      deps:[]
+    }
+  ],
+  'm6': [
+    {
+      id:'m-b1', row:'row-money-bonus', tag:'new', xp:50, deadline:999,
+      title:'월 자동수익 30만원 달성 챌린지',
+      desc:'에셋(Fab) + 음악(Pond5) + 유튜브 광고 + 멤버십 합산. 이 퀘스트 깨면 진짜 N잡러 인증. 다음 목표는 100만원.',
+      deps:[]
+    }
+  ],
+  'm4': [
+    {
+      id:'m-b2', row:'row-money-bonus', tag:'new', xp:20, deadline:999,
+      title:'AI 음악 누적 30곡 등록 (자동수익 엔진)',
+      desc:'음악은 한 번 올리면 계속 팔려. 30곡이면 매달 자동 수익 느껴지기 시작. 자면서 버는 첫 경험.',
+      deps:[]
+    }
+  ]
+};
+
+// ══════════════════════════════════════════
+// STATE — 포폴+AI결과물 보유자: Lv.2 시작 (XP 60 선반영)
+// ══════════════════════════════════════════
+let state = {
+  done: [],
+  failed: [],
+  hp: 100,
+  xp: 60,          // 포폴+AI결과물 보유 → Lv.2 스타트
+  level: 1,
+  sprintStart: null,
+  unlockedBonus: [],
+};
+
+// ══════════════════════════════════════════
+// SAVE / LOAD
+// ══════════════════════════════════════════
+function saveState() {
+  localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+}
+function loadState() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (raw) {
+      const s = JSON.parse(raw);
+      Object.assign(state, s);
+    }
+    // 포폴+AI결과물 보유: 저장 데이터가 없거나 xp가 초기값보다 낮으면 60 보장
+    if (state.xp < 60) state.xp = 60;
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════
+// SPRINT DAY
+// ══════════════════════════════════════════
+function getSprintDay() {
+  if (!state.sprintStart) return null;
+  const start = new Date(state.sprintStart);
+  const now = new Date();
+  return Math.floor((now - start) / 86400000) + 1;
+}
+function updateTodayBar() {
+  const today = new Date();
+  const dayStr = today.toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'short' });
+  document.getElementById('today-text').textContent = '📅 오늘: ' + dayStr;
+
+  const day = getSprintDay();
+  const el = document.getElementById('sprint-day-text');
+  if (day === null) {
+    el.innerHTML = '<span style="color:var(--amber-text);cursor:pointer;text-decoration:underline" onclick="setSprintStart()">📌 여기 클릭해서 스프린트 시작일 설정</span>';
+  } else if (day > 90) {
+    el.textContent = '🏁 90일 스프린트 종료! D+' + day;
+  } else {
+    el.textContent = 'Day ' + day + ' / 90  ·  D-' + (90 - day + 1) + '일 남음';
+  }
+}
+function setSprintStart() {
+  const input = prompt('스프린트 시작일을 입력해 (예: 2025-04-01)', new Date().toISOString().slice(0,10));
+  if (!input) return;
+  state.sprintStart = input;
+  saveState();
+  updateTodayBar();
+  checkDeadlines();
+  renderAll();
+}
+
+// ══════════════════════════════════════════
+// DEADLINE CHECK
+// ══════════════════════════════════════════
+function checkDeadlines() {
+  const day = getSprintDay();
+  if (day === null) return;
+  let newFails = [];
+  questData.forEach(q => {
+    if (state.done.includes(q.id)) return;
+    if (state.failed.includes(q.id)) return;
+    if (day > q.deadline) {
+      state.failed.push(q.id);
+      state.hp = Math.max(0, state.hp - 10);
+      newFails.push(q.title);
+    }
+  });
+  // Also check bonus quests
+  getAllBonusQuests().forEach(q => {
+    if (state.done.includes(q.id)) return;
+    if (state.failed.includes(q.id)) return;
+    if (q.deadline < 999 && day > q.deadline) {
+      state.failed.push(q.id);
+      state.hp = Math.max(0, state.hp - 10);
+      newFails.push(q.title);
+    }
+  });
+  if (newFails.length > 0) {
+    saveState();
+    const msg = document.getElementById('penalty-msg');
+    msg.textContent = '⏰ 데드라인 초과 실패: ' + newFails.slice(0,2).join(', ') + (newFails.length > 2 ? ' 외 ' + (newFails.length-2) + '건' : '') + '  · HP -' + (newFails.length * 10);
+    msg.classList.add('show');
+  }
+}
+
+function getAllBonusQuests() {
+  const all = [];
+  Object.values(bonusQuestMap).forEach(arr => arr.forEach(q => all.push(q)));
+  return all;
+}
+
+function getDeadlineLabel(q) {
+  const day = getSprintDay();
+  if (!state.sprintStart) return 'D-' + q.deadline + '일';
+  if (state.done.includes(q.id)) return '완료 ✅';
+  if (state.failed.includes(q.id)) return '기간 초과 ❌';
+  if (q.deadline >= 999) return '기간 자유';
+  const remaining = q.deadline - (day || 0);
+  if (remaining < 0) return '기간 초과';
+  if (remaining <= 3) return 'D-' + remaining + ' ⚠️';
+  return 'D-' + remaining + '일';
+}
+function getDeadlineClass(q) {
+  const day = getSprintDay();
+  if (!state.sprintStart) return '';
+  if (state.done.includes(q.id)) return 'safe';
+  if (state.failed.includes(q.id)) return 'expired';
+  if (q.deadline >= 999) return 'safe';
+  const remaining = q.deadline - (day || 0);
+  if (remaining < 0) return 'expired';
+  if (remaining <= 3) return '';
+  return 'safe';
+}
+
+// ══════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════
+function isUnlocked(q) {
+  if (!q.deps || q.deps.length === 0) return true;
+  return q.deps.every(d => state.done.includes(d));
+}
+
+function renderCard(q) {
+  const isDone = state.done.includes(q.id);
+  const isFailed = state.failed.includes(q.id);
+  const locked = !isUnlocked(q) && !isDone && !isFailed;
+  const isNew = state.unlockedBonus.includes(q.id);
+  const isBoss = q.boss;
+
+  let cls = 'qcard';
+  if (locked) cls += ' locked';
+  if (isDone) cls += ' done';
+  if (isFailed) cls += ' failed';
+  if (isBoss) cls += ' boss-card';
+  if (isNew) cls += ' new-quest';
+
+  const badge = isDone ? '✅' : isFailed ? '❌' : '';
+  const tagCls = 'tag-' + (isNew ? 'new' : q.tag);
+  const tagLabel = isNew ? '🔓 NEW QUEST' :
+    q.tag === '3d' ? '3D 아트' :
+    q.tag === 'ai' ? 'AI 크리에이터' :
+    q.tag === 'money' ? '수익화' :
+    q.tag === 'boss' ? '보스급' : '최종 보스';
+
+  const dlLabel = getDeadlineLabel(q);
+  const dlCls = 'deadline ' + getDeadlineClass(q);
+
+  return `
+    <div class="${cls}" id="qcard-${q.id}" onclick="tryToggle('${q.id}')">
+      <div class="corner-badge">${badge}</div>
+      <span class="qtag ${tagCls}">${tagLabel}</span>
+      <div class="qtitle">${q.title}</div>
+      <div class="qdesc">${q.desc}</div>
+      <div class="qfooter">
+        <span class="qxp">+${q.xp} XP</span>
+        <span class="${dlCls}">${dlLabel}</span>
+      </div>
+    </div>`;
+}
+
+function renderAll() {
+  // Collect all quests including unlocked bonus quests
+  const activeBonus = getAllBonusQuests().filter(q => state.unlockedBonus.includes(q.id));
+  const allQuests = [...questData, ...activeBonus];
+
+  // Group by row
+  const grouped = {};
+  allQuests.forEach(q => {
+    if (!grouped[q.row]) grouped[q.row] = [];
+    grouped[q.row].push(q);
+  });
+
+  Object.keys(grouped).forEach(rowId => {
+    const el = document.getElementById(rowId);
+    if (!el) return;
+    el.innerHTML = grouped[rowId].map(renderCard).join('');
+  });
+
+  updateHUD();
+  updateTodayBar();
+}
+
+// ══════════════════════════════════════════
+// INTERACTION
+// ══════════════════════════════════════════
+function tryToggle(id) {
+  const allQ = [...questData, ...getAllBonusQuests()];
+  const q = allQ.find(x => x.id === id);
+  if (!q) return;
+
+  if (state.failed.includes(id)) { showToast('⏰ 이미 실패한 퀘스트야'); return; }
+  if (!isUnlocked(q) && !state.done.includes(id)) { showToast('🔒 선행 퀘스트를 먼저 완료해!'); return; }
+
+  if (state.done.includes(id)) {
+    // Undo
+    state.done = state.done.filter(x => x !== id);
+    state.xp = Math.max(0, state.xp - q.xp);
+    saveState();
+    renderAll();
+    return;
+  }
+
+  // Complete
+  state.done.push(id);
+  state.xp += q.xp;
+
+  // Unlock bonus quests?
+  if (bonusQuestMap[id]) {
+    bonusQuestMap[id].forEach(bq => {
+      if (!state.unlockedBonus.includes(bq.id)) {
+        state.unlockedBonus.push(bq.id);
+      }
+    });
+    // Show bonus section label
+    const labelMap = { 'row-3d-bonus':'3d-bonus-label', 'row-ai-bonus':'ai-bonus-label', 'row-money-bonus':'money-bonus-label' };
+    bonusQuestMap[id].forEach(bq => {
+      const lbl = document.getElementById(labelMap[bq.row]);
+      if (lbl) lbl.style.display = '';
+    });
+    setTimeout(() => showToast('🔓 새 퀘스트 해금! 보너스 퀘스트를 확인해봐'), 400);
+  }
+
+  const prevLevel = getCurrentLvIndex();
+  saveState();
+  renderAll();
+
+  const newLevel = getCurrentLvIndex();
+  if (newLevel > prevLevel) {
+    setTimeout(() => showLevelUp(newLevel), 500);
+  } else {
+    const msgs = {
+      '3d1':'🛠 인테리어 씬 완성! 모델링 스탯 해제',
+      '3d2':'🎨 텍스처 완성! PBR 마스터',
+      '3d4':'🤖 AI+3D 파이프라인 개통!',
+      'ai1':'🎵 첫 AI 노래 완성! 사운드 스탯 해제',
+      'ai4':'🎬 AI 뮤직비디오 완성! 크리에이터 각인',
+      'm5':'💸 첫 수익 달성!! N잡러 시동 걸림',
+      '3d-boss':'🏆 구직 보스 클리어! 이직 루트 열림',
+    };
+    showToast(msgs[id] || '✅ 퀘스트 완료! +' + q.xp + ' XP');
+  }
+}
+
+// ══════════════════════════════════════════
+// HUD
+// ══════════════════════════════════════════
+function getCurrentLvIndex() {
+  let idx = 0;
+  for (let i = 0; i < lvTable.length; i++) {
+    if (state.xp >= lvTable[i].xp) idx = i;
+  }
+  return idx;
+}
+
+function updateHUD() {
+  const idx = getCurrentLvIndex();
+  const lv = lvTable[idx];
+  const pct = Math.round((state.xp / TOTAL_XP) * 100);
+
+  document.getElementById('avatar').textContent = lv.emoji;
+  document.getElementById('stat-lv').textContent = lv.lv;
+  document.getElementById('stat-done').textContent = state.done.length;
+  document.getElementById('stat-fail').textContent = state.failed.length;
+  document.getElementById('stat-xp').textContent = state.xp;
+  document.getElementById('xp-fill').style.width = Math.min(100, pct) + '%';
+  document.getElementById('xp-pct').textContent = pct + '%';
+  document.getElementById('hp-val').textContent = state.hp;
+  document.getElementById('hp-fill').style.width = state.hp + '%';
+  document.getElementById('pclass').textContent = '클래스: ' + lv.cls + ' · HP ' + state.hp;
+}
+
+// ══════════════════════════════════════════
+// LEVEL UP POPUP
+// ══════════════════════════════════════════
+function showLevelUp(idx) {
+  const lv = lvTable[idx];
+  document.getElementById('lu-avatar').textContent = lv.emoji;
+  document.getElementById('lu-level').textContent = lv.lv;
+  document.getElementById('lu-class').textContent = lv.cls;
+  document.getElementById('lu-overlay').classList.add('show');
+}
+function closeLevelUp() {
+  document.getElementById('lu-overlay').classList.remove('show');
+}
+
+// ══════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    const names = ['3d','ai','money'];
+    t.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.tab-content').forEach(el => {
+    el.classList.toggle('active', el.id === 'tab-' + name);
+  });
+}
+
+// ══════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ══════════════════════════════════════════
+// RESET
+// ══════════════════════════════════════════
+function confirmReset() {
+  if (!confirm('정말 초기화할까? 모든 진행 상황이 사라져!')) return;
+  state = { done:[], failed:[], hp:100, xp:60, level:1, sprintStart: state.sprintStart, unlockedBonus:[] };
+  document.getElementById('penalty-msg').classList.remove('show');
+  saveState();
+  renderAll();
+}
+
+// ══════════════════════════════════════════
+// BONUS LABEL RESTORE
+// ══════════════════════════════════════════
+function restoreBonusLabels() {
+  const labelMap = { 'row-3d-bonus':'3d-bonus-label', 'row-ai-bonus':'ai-bonus-label', 'row-money-bonus':'money-bonus-label' };
+  state.unlockedBonus.forEach(bqid => {
+    const allBQ = getAllBonusQuests();
+    const bq = allBQ.find(x => x.id === bqid);
+    if (!bq) return;
+    const lbl = document.getElementById(labelMap[bq.row]);
+    if (lbl) lbl.style.display = '';
+  });
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+loadState();
+checkDeadlines();
+restoreBonusLabels();
+renderAll();
+
+// Check deadlines every minute
+setInterval(() => { checkDeadlines(); renderAll(); }, 60000);
+</script>
+</body>
+</html>
